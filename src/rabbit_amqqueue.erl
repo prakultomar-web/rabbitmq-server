@@ -32,7 +32,6 @@
          emit_info_local/4, emit_info_down/4]).
 -export([count/0]).
 -export([list_down/1, count/1, list_names/0, list_names/1, list_local_names/0,
-         list_local_mirrored_classic_names/0,
          list_local_names_down/0, list_with_possible_retry/1]).
 -export([list_by_type/1, sample_local_queues/0, sample_n_by_name/2, sample_n/2]).
 -export([force_event_refresh/1, notify_policy_changed/1]).
@@ -47,6 +46,7 @@
 -export([has_synchronised_mirrors_online/1]).
 -export([is_replicated/1, is_dead_exclusive/1]). % Note: exported due to use in qlc expression.
 -export([list_local_quorum_queues/0, list_local_quorum_queue_names/0,
+         list_local_mirrored_classic_queues/0, list_local_mirrored_classic_names/0,
          list_local_leaders/0, list_local_followers/0, get_quorum_nodes/1,
          list_local_mirrored_classic_without_synchronised_mirrors/0,
          list_local_mirrored_classic_without_synchronised_mirrors_for_cli/0]).
@@ -1080,6 +1080,14 @@ list_local_followers() ->
          amqqueue:is_quorum(Q),
          amqqueue:get_state(Q) =/= crashed, amqqueue:get_leader(Q) =/= node(),
         lists:member(node(), get_quorum_nodes(Q))].
+
+-spec list_local_mirrored_classic_queues() -> [amqqueue:amqqueue()].
+list_local_mirrored_classic_queues() ->
+    [ Q || Q <- list(),
+        amqqueue:get_state(Q) =/= crashed,
+        amqqueue:is_classic(Q),
+        is_local_to_node(amqqueue:get_pid(Q), node()),
+        is_replicated(Q)].
 
 -spec list_local_mirrored_classic_names() -> [rabbit_amqqueue:name()].
 list_local_mirrored_classic_names() ->
